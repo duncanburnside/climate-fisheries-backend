@@ -42,21 +42,42 @@ export async function handlePixel(req: Request, res: Response) {
 
       return res.json(data);
     } catch (error: any) {
+      // Log error details for debugging
+      console.error('Error reading pixel data:', {
+        relativePath,
+        error: error.message,
+        errorName: error.name,
+        errorCode: error.code,
+        httpStatusCode: error.$metadata?.httpStatusCode,
+        stack: error.stack
+      });
+
       if (error.code === 'ENOENT' || error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
         return res.status(404).json({
-          error: `File not found: ${relativePath}`
+          error: `File not found: ${relativePath}`,
+          details: error.message
         });
       }
       if (error instanceof SyntaxError) {
         return res.status(500).json({
-          error: `Invalid JSON in file: ${relativePath}`
+          error: `Invalid JSON in file: ${relativePath}`,
+          details: error.message
         });
       }
       throw error;
     }
   } catch (error: any) {
+    // Log the full error for debugging
+    console.error('Unexpected error in pixel route:', {
+      error: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack
+    });
+
     return res.status(500).json({
-      error: error.message || 'Internal server error'
+      error: error.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
