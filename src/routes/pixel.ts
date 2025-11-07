@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { readFile } from 'fs/promises';
+import { indicatorMapping, getDataDir, readDataFile } from '../utils/dataDir';
+import { getR2PublicUrl } from '../utils/r2';
 import { join } from 'path';
-import { getDataDir, indicatorMapping } from '../utils/dataDir';
 
 export async function handlePixel(req: Request, res: Response) {
   try {
@@ -15,36 +15,22 @@ export async function handlePixel(req: Request, res: Response) {
 
     const mappedIndicator = indicatorMapping[indicator as string] || indicator;
 
-    const latIndex = (parseFloat(latitude as string) + 179.75) / 0.5;
-    const longIndex = (parseFloat(longitude as string) + 89.75) / 0.5;
-    const index = Math.floor((latIndex * 360) + longIndex);
-
-    const dataDir = getDataDir();
-    const filename = join(dataDir, 'PIXEL', mappedIndicator, climate as string, `${period}.json`);
-
-    try {
-      const fileContents = await readFile(filename, 'utf-8');
-      const pixelJson = JSON.parse(fileContents);
-
-      let data: any = {};
-      if (index < pixelJson.length && pixelJson[index] !== null) {
-        data = pixelJson[index];
-      }
-
-      return res.json(data);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        return res.status(404).json({
-          error: `File not found: ${filename}`
-        });
-      }
-      if (error instanceof SyntaxError) {
-        return res.status(500).json({
-          error: `Invalid JSON in file: ${filename}`
-        });
-      }
-      throw error;
-    }
+    // Create the R2 key for the pixel data file
+    const relativePath = join('PIXEL', mappedIndicator, climate as string, `${period}.json`);
+    const r2Key = relativePath.replace(/\\/g, '/');
+    
+    // Return the public URL for the data file
+    const publicUrl = getR2PublicUrl(r2Key);
+    
+    return res.json({
+      url: publicUrl,
+      indicator: mappedIndicator,
+      climate,
+      period,
+      latitude,
+      longitude,
+      note: 'Use the provided URL to fetch the pixel data directly'
+    });
   } catch (error: any) {
     return res.status(500).json({
       error: error.message || 'Internal server error'

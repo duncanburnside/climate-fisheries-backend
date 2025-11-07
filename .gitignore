@@ -1,4 +1,12 @@
 node_modules/
 dist/
 .env
+.env.local
 .DS_Store
+/Data
+/Data/*
+.temp-extract/
+data.db
+data.db-shm
+data.db-wal
+Data.zip

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { readFile } from 'fs/promises';
+import { indicatorMapping, getDataDir, readDataFile } from '../utils/dataDir';
+import { getR2PublicUrl } from '../utils/r2';
 import { join } from 'path';
-import { getDataDir, indicatorMapping } from '../utils/dataDir';
 
 export async function handlePixelData(req: Request, res: Response) {
   try {
@@ -15,27 +15,20 @@ export async function handlePixelData(req: Request, res: Response) {
 
     const mappedIndicator = indicatorMapping[indicator as string] || indicator;
 
-    const dataDir = getDataDir();
-    const filename = join(dataDir, 'PIXEL', mappedIndicator, climate as string, `${period}.json`);
-
-    try {
-      const fileContents = await readFile(filename, 'utf-8');
-      const pixelJson = JSON.parse(fileContents);
-
-      return res.json(pixelJson);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
-        return res.status(404).json({
-          error: `File not found: ${filename}`
-        });
-      }
-      if (error instanceof SyntaxError) {
-        return res.status(500).json({
-          error: `Invalid JSON in file: ${filename}`
-        });
-      }
-      throw error;
-    }
+    // Create R2 key for the pixel data file
+    const relativePath = join('PIXEL', mappedIndicator, climate as string, `${period}.json`);
+    const r2Key = relativePath.replace(/\\/g, '/');
+    
+    // Return public URL for the data file
+    const publicUrl = getR2PublicUrl(r2Key);
+    
+    return res.json({
+      url: publicUrl,
+      indicator: mappedIndicator,
+      climate,
+      period,
+      note: 'Use the provided URL to fetch pixel data directly'
+    });
   } catch (error: any) {
     return res.status(500).json({
       error: error.message || 'Internal server error'
