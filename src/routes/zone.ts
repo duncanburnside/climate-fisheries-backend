@@ -13,14 +13,21 @@ export async function handleZone(req: Request, res: Response) {
       });
     }
 
-    const mappedIndicator = indicatorMapping[indicator as string] || indicator;
+    // Ensure all parameters are strings
+    const modelStr = String(model);
+    const indicatorStr = String(indicator);
+    const climateStr = String(climate);
+    const zoneIdStr = String(zoneId);
+    const periodStr = String(period);
+
+    const mappedIndicator = indicatorMapping[indicatorStr] || indicatorStr;
 
     // Create R2 keys for the data files
-    const relativePath = join('MODEL', model as string, mappedIndicator, climate as string, `${zoneId}.json`);
+    const relativePath = join('MODEL', modelStr, mappedIndicator, climateStr, `${zoneIdStr}.json`);
     const r2Key = relativePath.replace(/\\/g, '/');
     
     // Create R2 key for chart data
-    const chartRelativePath = join('ZONECHART', model as string, `${mappedIndicator}.json`);
+    const chartRelativePath = join('ZONECHART', modelStr, `${mappedIndicator}.json`);
     const chartR2Key = chartRelativePath.replace(/\\/g, '/');
     
     // Return public URLs for the data files

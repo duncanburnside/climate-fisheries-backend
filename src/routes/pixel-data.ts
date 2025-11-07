@@ -13,10 +13,15 @@ export async function handlePixelData(req: Request, res: Response) {
       });
     }
 
-    const mappedIndicator = indicatorMapping[indicator as string] || indicator;
+    // Ensure all parameters are strings
+    const indicatorStr = String(indicator);
+    const climateStr = String(climate);
+    const periodStr = String(period);
+
+    const mappedIndicator = indicatorMapping[indicatorStr] || indicatorStr;
 
     // Create R2 key for the pixel data file
-    const relativePath = join('PIXEL', mappedIndicator, climate as string, `${period}.json`);
+    const relativePath = join('PIXEL', mappedIndicator, climateStr, `${periodStr}.json`);
     const r2Key = relativePath.replace(/\\/g, '/');
     
     // Return public URL for the data file
