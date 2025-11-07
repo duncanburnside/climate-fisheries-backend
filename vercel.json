@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/zone",
+      "dest": "src/index.ts"
+    },
+    {
+      "src": "/pixel",
+      "dest": "src/index.ts"
+    },
+    {
+      "src": "/pixel-data",
+      "dest": "src/index.ts"
+    },
+    {
+      "src": "/email",
+      "dest": "src/index.ts"
+    }
+  ]
+}
+
